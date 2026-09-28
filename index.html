@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Game</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      font-family: Arial, sans-serif;
+      background: #1e293b;
+      color: #f1f5f9;
+      text-align: center;
+    }
+
+    .box { width: 100%; max-width: 380px; }
+
+    h1 { margin: 0 0 8px; }
+    #info { margin: 0 0 16px; color: #94a3b8; }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      background: #3b82f6;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      color: transparent;
+    }
+
+    .card.flipped,
+    .card.matched {
+      background: #f8fafc;
+      color: #000;
+    }
+
+    .card.matched {
+      background: #86efac;
+      cursor: default;
+    }
+
+    button {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #f59e0b;
+      color: #1e293b;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #d97706; }
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>Memory Game</h1>
+    <p id="info">Moves: 0</p>
+
+    <div id="board"></div>
+
+    <button id="restart">Restart</button>
+  </main>
+
+  <script>
+    const board = document.getElementById("board");
+    const info = document.getElementById("info");
+    const restartBtn = document.getElementById("restart");
+
+    const emojis = ["🍎", "🐶", "🚗", "⚽", "🌟", "🍕", "🎧", "🐱"];
+
+    let first = null;
+    let second = null;
+    let lock = false;
+    let moves = 0;
+    let matches = 0;
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startGame() {
+      board.innerHTML = "";
+      first = null;
+      second = null;
+      lock = false;
+      moves = 0;
+      matches = 0;
+      info.textContent = "Moves: 0";
+
+      const cards = shuffle([...emojis, ...emojis]);
+
+      cards.forEach((emoji) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.emoji = emoji;
+        card.textContent = emoji;
+        card.addEventListener("click", () => flip(card));
+        board.appendChild(card);
+      });
+    }
+
+    function flip(card) {
+      if (lock) return;
+      if (card === first) return;
+      if (card.classList.contains("matched")) return;
+
+      card.classList.add("flipped");
+
+      if (!first) {
+        first = card;
+        return;
+      }
+
+      second = card;
+      moves++;
+      info.textContent = "Moves: " + moves;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      if (first.dataset.emoji === second.dataset.emoji) {
+        first.classList.add("matched");
+        second.classList.add("matched");
+        matches++;
+        resetTurn();
+
+        if (matches === emojis.length) {
+          info.textContent = "You won in " + moves + " moves! 🎉";
+        }
+      } else {
+        lock = true;
+        setTimeout(() => {
+          first.classList.remove("flipped");
+          second.classList.remove("flipped");
+          resetTurn();
+        }, 800);
+      }
+    }
+
+    function resetTurn() {
+      first = null;
+      second = null;
+      lock = false;
+    }
+
+    restartBtn.addEventListener("click", startGame);
+
+    startGame();
+  </script>
+</body>
+</html>
